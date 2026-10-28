@@ -319,14 +319,14 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#006948] animate-pulse"></span>
-            <span>© 2026 {t.brandTitle}. Verified Product & Food Authenticity Registry.</span>
+            <span>© 2026 {t.brandTitle}. Product lookup and registration demo.</span>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-[#6d7a72]">
-            <span>Brand Protection Cell</span>
+            <span>Product records</span>
             <span>•</span>
-            <span>Distributor Location Tracking</span>
+            <span>Consumer reports</span>
             <span>•</span>
-            <span>MetaMask Smart Contracts</span>
+            <span>Local demo ledger</span>
           </div>
         </div>
       </footer>

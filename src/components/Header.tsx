@@ -50,7 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-[#006948] bg-[#85f8c4]/40 border border-[#006948]/20 px-1.5 py-0.2 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#006948] animate-pulse"></span>
-                  Verified Brand Registry
+                  Product registry
                 </span>
               </div>
             </div>

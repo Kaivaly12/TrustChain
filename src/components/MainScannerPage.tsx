@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LiveCameraScanner } from './LiveCameraScanner';
 import { ScannerPageSkeleton } from './ShimmerSkeleton';
@@ -62,6 +62,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start();
+      osc.onended = () => { void ctx.close(); };
       osc.stop(ctx.currentTime + 0.13);
     } catch {}
   };
@@ -77,32 +78,41 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
     showAudioHud(next ? 'Audio: On' : 'Audio: Muted');
   };
 
+  const latestVerification = useRef(0);
+
+  useEffect(() => () => { latestVerification.current += 1; }, []);
+
   // Perform product verification query
   const executeVerification = async (payload: string, detectedFormat?: string) => {
+    if (!payload.trim()) return;
+    const requestId = ++latestVerification.current;
     setIsAnalyzing(true);
     setInputCode(payload);
     playBeep();
 
     try {
       const res = await analyzeScannedPayloadAsync(payload, blockchainLedger);
+      if (requestId !== latestVerification.current) return;
       if (detectedFormat) {
         res.barcodeFormat = detectedFormat;
       }
       setCurrentResult(res);
     } catch {
       const res = analyzeScannedPayload(payload, blockchainLedger);
+      if (requestId !== latestVerification.current) return;
       if (detectedFormat) {
         res.barcodeFormat = detectedFormat;
       }
       setCurrentResult(res);
     } finally {
-      setIsAnalyzing(false);
-      setTimeout(() => {
-        const resultSection = document.getElementById('verification-result-section');
-        if (resultSection) {
-          resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
+      if (requestId === latestVerification.current) {
+        setIsAnalyzing(false);
+        setTimeout(() => {
+          if (requestId !== latestVerification.current) return;
+          const resultSection = document.getElementById('verification-result-section');
+          resultSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
     }
   };
 
@@ -161,13 +171,13 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
           <div className="space-y-1.5 max-w-xl mx-auto">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#85f8c4]/30 border border-[#006948]/20 text-[#006948] text-xs font-semibold">
               <span className="material-symbols-outlined text-[15px]">verified</span>
-              <span>Product Authenticity Verification</span>
+              <span>Product lookup</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1a1c1a] tracking-tight">
-              Scan & Verify Any Market Product
+              {t.scannerHeroTitle}
             </h1>
             <p className="text-xs sm:text-sm text-[#6d7a72] leading-relaxed">
-              Scan barcodes on food items, drinks, snacks, cosmetics, or daily goods to verify if they are 100% genuine and view ingredients, nutrition, and origin.
+              {t.scannerHeroDesc}
             </p>
           </div>
 
@@ -292,11 +302,11 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                 </span>
                 <span className="text-[11px] text-[#006948] font-semibold flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#006948] animate-pulse"></span>
-                  <span>Certified Brand Database Active</span>
+                  <span>Local demo registry</span>
                 </span>
               </div>
               <p className="text-xs text-[#3d4a42] leading-relaxed">
-                Scan any physical barcode or upload a clear photo of product packaging. Our system cross-references certified manufacturer databases to identify the <strong>exact product variant</strong> (e.g., Amul Dark 55% vs. Nut &apos;N&apos; Bar vs. Silk Oreo), nutritional facts, and physical security markers.
+                Scan a barcode, upload a clear photo of the code, or enter its number. We’ll look for a matching record and show the available product details. Sample records let you try the process.
               </p>
               <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-[#6d7a72]">
                 <span className="font-semibold text-[#1a1c1a]">Quick Search Examples:</span>
@@ -338,7 +348,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                   }}
                   className="px-2 py-0.5 rounded-md bg-[#ffdad6]/60 border border-[#ba1a1a]/30 hover:bg-[#ffdad6] text-[#93000a] font-mono cursor-pointer transition-colors"
                 >
-                  000000FAKE99 (Unregistered Fake)
+                  000000FAKE99 (Unregistered sample)
                 </button>
               </div>
             </div>
@@ -409,7 +419,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                               : 'bg-[#ffdad6] text-[#93000a] border border-[#ba1a1a]/30'
                           }`}
                         >
-                          {isReal && !isRecalled ? 'Verified Brand Seal' : isRecalled ? 'Recall Notice' : 'Unregistered Warning'}
+                          {isReal && !isRecalled ? 'Registry match' : isRecalled ? 'Recall Notice' : 'Unregistered Warning'}
                         </span>
                       </div>
 
@@ -419,29 +429,31 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                         }`}
                       >
                         {isReal && !isRecalled
-                          ? '100% Authentic Product'
+                          ? 'Product code found'
                           : isRecalled
                           ? 'Product Recall Alert'
-                          : 'Unverified / Counterfeit Risk'}
+                          : 'Code not registered'}
                       </h2>
 
                       <p className="text-xs sm:text-sm text-[#3d4a42] leading-relaxed">
                         {isReal && !isRecalled
-                          ? 'This product is verified against official manufacturer records. Packaging integrity, authenticity credentials, and origin have been validated.'
+                          ? 'This code matches a record in the app registry. Check the physical packaging separately; a copied code can also match.'
                           : isRecalled
                           ? `Official safety recall notice: ${record?.recallReason || 'Do not consume or use.'}`
-                          : 'Warning: This product barcode was not found in the verified brand registry and may be a replica or unauthorized import.'}
+                          : 'This code is not in the app registry. Ask the brand or seller for more information before relying on this result.'}
                       </p>
                     </div>
                   </div>
 
                   {/* Authenticity Score Gauge */}
                   <TrustScoreGauge
-                    targetScore={isReal && !isRecalled ? 100 : (currentResult.trustScore || 15)}
+                    targetScore={currentResult.trustScore}
                     isReal={isReal}
                     isRecalled={isRecalled}
                   />
                 </div>
+
+                <p className="text-xs text-[#6d7a72] pt-3">Demo registry. Catalog details are reference information; check your package for current ingredients and allergens.</p>
 
                 {/* CORE PRODUCT ATTRIBUTES */}
                 <div className="py-6 border-b border-[#bccac0]/25 space-y-4">
@@ -464,7 +476,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                           alt={webIntel.productMatchTitle || 'Product'}
                           className="w-full h-full object-cover"
                         />
-                        {isFoodOrBeverage && (
+                        {foodDetails?.dietaryType === 'vegetarian' && (
                           <div className="absolute top-2 left-2 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded-md border border-neutral-200 shadow-xs flex items-center gap-1.5">
                             {/* Indian standard Vegetarian Green Dot mark */}
                             <div className="w-3.5 h-3.5 border-2 border-[#006948] flex items-center justify-center p-0.5">
@@ -481,7 +493,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="px-2.5 py-0.5 rounded-md bg-[#006948]/10 text-[#006948] font-bold text-xs uppercase border border-[#006948]/20 flex items-center gap-1">
                           <span className="material-symbols-outlined text-[13px]">verified</span>
-                          <span>{webIntel?.brand || record?.brand || 'Verified Brand'}</span>
+                          <span>{webIntel?.brand || record?.brand || 'Unknown brand'}</span>
                         </span>
                         <span className="text-xs text-[#6d7a72] font-semibold">
                           {webIntel?.category || record?.category || 'Consumer Product'}
@@ -500,7 +512,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                       )}
 
                       <p className="text-xs text-[#3d4a42] leading-relaxed">
-                        {webIntel?.summary || 'Standard retail commercial packaging verified via authorized manufacturer catalog.'}
+                        {webIntel?.summary || 'No catalog description available.'}
                       </p>
 
                       {/* 4 Core Quick Attribute Badges */}
@@ -515,21 +527,21 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                         <div className="p-2.5 rounded-xl bg-white border border-[#bccac0]/30">
                           <span className="text-[10px] text-[#6d7a72] block">Origin</span>
                           <span className="font-bold text-[#1a1c1a] text-xs block mt-0.5 truncate" title={webIntel?.countryOfOrigin || 'International'}>
-                            {webIntel?.countryOfOrigin?.split('(')[0]?.trim() || 'Verified Facility'}
+                            {webIntel?.countryOfOrigin?.split('(')[0]?.trim() || 'Not available'}
                           </span>
                         </div>
 
                         <div className="p-2.5 rounded-xl bg-white border border-[#bccac0]/30">
                           <span className="text-[10px] text-[#6d7a72] block">Packaging</span>
                           <span className={`font-bold text-xs block mt-0.5 ${isReal && !isRecalled ? 'text-[#006948]' : 'text-[#ba1a1a]'}`}>
-                            {isReal && !isRecalled ? 'Intact & Sealed' : 'Unverified'}
+                            Not inspected
                           </span>
                         </div>
 
                         <div className="p-2.5 rounded-xl bg-white border border-[#bccac0]/30">
                           <span className="text-[10px] text-[#6d7a72] block">Net Quantity</span>
                           <span className="font-bold text-[#1a1c1a] text-xs block mt-0.5 truncate">
-                            {foodDetails?.netQuantity || 'Standard Pack'}
+                            {foodDetails?.netQuantity || 'Not available'}
                           </span>
                         </div>
                       </div>
@@ -546,7 +558,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                         <span>Nutrition Facts & Ingredients</span>
                       </h4>
                       <span className="text-xs text-[#6d7a72]">
-                        Serving Size: <strong className="text-[#1a1c1a]">{foodDetails?.nutrition?.servingSize || '100g'}</strong> • Energy: <strong className="text-[#006948]">{foodDetails?.nutrition?.calories || '240 kcal'}</strong>
+                        Serving Size: <strong className="text-[#1a1c1a]">{foodDetails?.nutrition?.servingSize || 'Not available'}</strong> • Energy: <strong className="text-[#006948]">{foodDetails?.nutrition?.calories ?? 'Not available'}</strong>
                       </span>
                     </div>
 
@@ -555,28 +567,28 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                       <div className="p-3 rounded-xl bg-[#faf9f6] border border-[#bccac0]/30 text-center">
                         <span className="text-[10px] text-[#6d7a72] block">Protein</span>
                         <span className="font-bold text-[#1a1c1a] text-sm block mt-0.5">
-                          {foodDetails?.nutrition?.protein || '4.5g'}
+                          {foodDetails?.nutrition?.protein || 'Not available'}
                         </span>
                       </div>
 
                       <div className="p-3 rounded-xl bg-[#faf9f6] border border-[#bccac0]/30 text-center">
                         <span className="text-[10px] text-[#6d7a72] block">Total Fat</span>
                         <span className="font-bold text-[#1a1c1a] text-sm block mt-0.5">
-                          {foodDetails?.nutrition?.totalFat || '7.0g'}
+                          {foodDetails?.nutrition?.totalFat || 'Not available'}
                         </span>
                       </div>
 
                       <div className="p-3 rounded-xl bg-[#faf9f6] border border-[#bccac0]/30 text-center">
                         <span className="text-[10px] text-[#6d7a72] block">Carbohydrates</span>
                         <span className="font-bold text-[#1a1c1a] text-sm block mt-0.5">
-                          {foodDetails?.nutrition?.carbohydrates || '25.0g'}
+                          {foodDetails?.nutrition?.carbohydrates || 'Not available'}
                         </span>
                       </div>
 
                       <div className="p-3 rounded-xl bg-[#faf9f6] border border-[#bccac0]/30 text-center">
                         <span className="text-[10px] text-[#6d7a72] block">Sugars</span>
                         <span className="font-bold text-[#006948] text-sm block mt-0.5">
-                          {foodDetails?.nutrition?.sugars || '14.0g'}
+                          {foodDetails?.nutrition?.sugars || 'Not available'}
                         </span>
                       </div>
                     </div>
@@ -602,10 +614,10 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                           <span>Allergens & Expiry:</span>
                         </span>
                         <p className="text-xs text-[#93000a]">
-                          {foodDetails?.allergens?.join(', ') || 'No common allergen alerts detected. Verify on pack.'}
+                          {foodDetails?.allergens?.length ? foodDetails.allergens.join(', ') : 'Allergen information not available. Check the package.'}
                         </p>
                         <p className="text-xs text-[#3d4a42] pt-1">
-                          Best Before: <strong>{foodDetails?.bestBefore || record?.expiryDate || '10 May 2027'}</strong>
+                          Best Before: <strong>{record?.expiryDate || 'Not available'}</strong>
                         </p>
                         {foodDetails?.foodSafetyLicense && (
                           <span className="text-[11px] font-mono text-[#006948] block pt-0.5">
@@ -626,11 +638,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                     </h4>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                      {(webIntel?.keySpecs || [
-                        'Authentic product verified with manufacturer records',
-                        'Tamper-evident packaging intact',
-                        'Quality inspected and tested'
-                      ]).map((spec, i) => (
+                      {(webIntel?.keySpecs || []).map((spec, i) => (
                         <div key={i} className="flex items-start gap-2 p-2.5 rounded-xl bg-[#faf9f6] border border-[#bccac0]/30">
                           <span className="material-symbols-outlined text-[15px] text-[#006948] shrink-0 mt-0.5">verified</span>
                           <span>{spec}</span>
@@ -647,7 +655,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                     <div className="p-4 rounded-2xl bg-[#faf9f6] border border-[#bccac0]/35 space-y-2.5">
                       <div className="text-xs font-bold text-[#1a1c1a] flex items-center gap-1.5">
                         <span className="material-symbols-outlined text-[16px] text-[#006948]">fact_check</span>
-                        <span>Physical Packaging Verification Points:</span>
+                        <span>Packaging details to check:</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#3d4a42]">
                         {(webIntel.physicalAuthenticityChecks || webIntel.authenticityIndicators || []).map((ind, i) => (
@@ -690,7 +698,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                         <span>Found a Fake Product or Damaged Packaging?</span>
                       </div>
                       <p className="text-[11px] text-[#6d7a72] max-w-lg leading-relaxed">
-                        Upload a photo of the defect and pin the seller/distributor location. The manufacturer brand protection team will track the distributor and take strict legal action.
+                        Share a photo, describe the issue, and add the seller’s location so the report can be reviewed.
                       </p>
                     </div>
 
@@ -701,7 +709,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                         className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#ba1a1a] hover:bg-[#93000a] text-white text-xs font-bold shadow-xs cursor-pointer transition-all"
                       >
                         <span className="material-symbols-outlined text-[16px]">gavel</span>
-                        <span>Report Fake & Track Seller</span>
+                        <span>Report a problem</span>
                       </button>
 
                       <button
@@ -717,15 +725,15 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                 </div>
 
                 {/* Consumer Warning if Unregistered - Registration Restricted to Manufacturers Only */}
-                {!isReal && (
+                {!record && (
                   <div className="py-4 border-b border-[#bccac0]/25">
                     <div className="p-4 sm:p-5 rounded-2xl bg-[#ffdad6]/40 border border-[#ba1a1a]/30 space-y-3">
                       <div className="flex items-center gap-2 text-[#93000a]">
                         <span className="material-symbols-outlined text-[22px]">gpp_maybe</span>
-                        <h4 className="text-xs sm:text-sm font-bold">Unregistered Product • Consumer Protection Notice</h4>
+                        <h4 className="text-xs sm:text-sm font-bold">No matching record</h4>
                       </div>
                       <p className="text-xs text-[#3d4a42] leading-relaxed">
-                        This barcode is not certified in the official manufacturer database and may be an unauthorized duplicate, adulterated good, or counterfeit. <strong>Consumers do not have permission to register products</strong> — only certified brand manufacturers can register items via the Manufacturer Portal.
+                        This code has no matching record in the app. Check with the brand or seller for more information. Brand accounts can add product records through the registration page.
                       </p>
 
                       <div className="pt-1 flex flex-wrap items-center gap-2">
@@ -735,10 +743,10 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                           className="px-4 py-2 rounded-xl bg-[#ba1a1a] hover:bg-[#93000a] text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                         >
                           <span className="material-symbols-outlined text-[16px]">location_searching</span>
-                          <span>Report Counterfeit & Pin Distributor</span>
+                          <span>Report an issue with this item</span>
                         </button>
                         <span className="text-[11px] text-[#6d7a72]">
-                          Your report alerts the brand manufacturer to track the distributor selling this fake product.
+                          Include the seller’s details to help explain where you bought the item.
                         </span>
                       </div>
                     </div>
@@ -749,7 +757,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                 <div className="pt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[#6d7a72]">
                   <span className="flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-[15px] text-[#006948]">verified</span>
-                    <span>Scanned at {currentResult.scannedAt} • Verified Genuine Record</span>
+                    <span>Scanned at {currentResult.scannedAt} • {isRecalled ? 'Recall notice' : isReal ? 'Registry match' : 'No registry match'}</span>
                   </span>
 
                   <a

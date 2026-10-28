@@ -85,7 +85,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-[#006948] hover:bg-[#00855d] active:scale-[0.98] text-white font-bold text-sm sm:text-base shadow-lg shadow-[#006948]/25 flex items-center justify-center gap-2.5 transition-all cursor-pointer group"
             >
               <span className="material-symbols-outlined text-[20px]">qr_code_scanner</span>
-              <span>Consumer: Launch Product Scanner</span>
+              <span>Scan a product</span>
               <span className="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">
                 arrow_forward
               </span>
@@ -97,7 +97,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-white hover:bg-[#efeeeb] text-[#1a1c1a] font-bold text-sm border border-[#bccac0]/40 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
             >
               <span className="material-symbols-outlined text-[18px] text-[#006948]">corporate_fare</span>
-              <span>Manufacturer Portal & Smart Contracts</span>
+              <span>Register products</span>
             </button>
           </motion.div>
         </motion.div>
@@ -132,7 +132,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 }`}
               >
                 <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                <span>Demo REAL (Genuine)</span>
+                <span>Registered example</span>
               </button>
 
               <button
@@ -145,7 +145,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 }`}
               >
                 <span className="material-symbols-outlined text-[16px]">cancel</span>
-                <span>Demo FAKE (Counterfeit)</span>
+                <span>Unregistered example</span>
               </button>
             </div>
           </div>
@@ -180,7 +180,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] uppercase font-mono text-[#6d7a72] block">Trust</span>
+                  <span className="text-[10px] uppercase font-mono text-[#6d7a72] block">Registry score</span>
                   <span className="text-2xl font-mono font-extrabold text-[#006948]">100%</span>
                 </div>
               </div>
@@ -207,7 +207,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   onClick={() => onEnterSite('scanner', 'NIKE-AIR-JORDAN-1042')}
                   className="px-3 py-1.5 rounded-lg bg-[#006948] hover:bg-[#00855d] text-white font-semibold text-[11px] transition-colors cursor-pointer"
                 >
-                  Verify This Code
+                  Check this code
                 </button>
               </div>
             </motion.div>
@@ -240,7 +240,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] uppercase font-mono text-[#6d7a72] block">Trust</span>
+                  <span className="text-[10px] uppercase font-mono text-[#6d7a72] block">Registry score</span>
                   <span className="text-2xl font-mono font-extrabold text-[#ba1a1a]">0%</span>
                 </div>
               </div>
@@ -262,7 +262,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   onClick={() => onEnterSite('scanner', 'FAKE-COUNTERFEIT-REPLICA-884')}
                   className="px-3 py-1.5 rounded-lg bg-[#ba1a1a] hover:bg-[#93000a] text-white font-semibold text-[11px] transition-colors cursor-pointer"
                 >
-                  Inspect Counterfeit
+                  Check this code
                 </button>
               </div>
             </motion.div>
@@ -293,35 +293,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               desc: t.step1Desc,
               icon: 'add_circle',
               color: '#006948',
-              badge: 'Manufacturer Mint'
+              badge: 'Add a product'
             },
             {
               title: t.step2Title,
               desc: t.step2Desc,
               icon: 'qr_code_2',
               color: '#006948',
-              badge: 'Physical Packaging Tag'
+              badge: 'Product code'
             },
             {
               title: t.step3Title,
               desc: t.step3Desc,
               icon: 'center_focus_strong',
               color: '#006948',
-              badge: 'Customer Camera Scan'
+              badge: 'Scan the code'
             },
             {
               title: t.step4Title,
               desc: t.step4Desc,
               icon: 'hub',
               color: '#006948',
-              badge: 'Decentralized SHA-256'
+              badge: 'Find a record'
             },
             {
               title: t.step5Title,
               desc: t.step5Desc,
               icon: 'workspace_premium',
               color: '#006948',
-              badge: 'Official Certificate of Authenticity'
+              badge: 'Read the result'
             }
           ].map((step, idx) => (
             <motion.div

@@ -7,54 +7,21 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
 
   let resolvedDomain = '';
   let sslSecure = false;
-  let domainTrustScore = 50;
-  const knownCounterfeitSignals: string[] = [];
-  const legitimacyFactors: string[] = [];
   const scrapedDetails: Record<string, string> = {};
-
   if (isUrl) {
     try {
-      const urlObj = new URL(clean);
-      resolvedDomain = urlObj.hostname;
-      sslSecure = clean.startsWith('https://');
-      scrapedDetails['Resolved Domain'] = resolvedDomain;
-      scrapedDetails['Protocol'] = urlObj.protocol;
-      scrapedDetails['Path'] = urlObj.pathname;
-
-      const trustedOfficialDomains = [
-        'apple.com', 'nike.com', 'sony.com', 'rolex.com', 'samsung.com',
-        'amazon.com', 'bestbuy.com', 'adidas.com', 'dyson.com', 'bose.com',
-        'sephora.com', 'target.com', 'walmart.com', 'coca-cola.com', 'mondelezinternational.com',
-        'ferrero.com', 'nestle.com', 'heinz.com', 'amul.com', 'pepsico.com'
-      ];
-
-      const isOfficial = trustedOfficialDomains.some(d => resolvedDomain.includes(d));
-      if (isOfficial) {
-        domainTrustScore = 96;
-        legitimacyFactors.push(`Verified official enterprise root domain (${resolvedDomain})`);
-        legitimacyFactors.push('Legitimate SHA-256 SSL TLS 1.3 encrypted domain');
-      } else if (
-        resolvedDomain.includes('cheap') ||
-        resolvedDomain.includes('replica') ||
-        resolvedDomain.includes('discount') ||
-        resolvedDomain.includes('knockoff') ||
-        resolvedDomain.includes('xyz')
-      ) {
-        domainTrustScore = 15;
-        knownCounterfeitSignals.push(`Blacklisted domain naming scheme flagged for counterfeit replicas (${resolvedDomain})`);
-        knownCounterfeitSignals.push('Uncertified web host flagged for unauthorized parallel goods');
-      } else {
-        domainTrustScore = 65;
-        legitimacyFactors.push(`Live commercial domain (${resolvedDomain})`);
-      }
+      const url = new URL(clean);
+      resolvedDomain = url.hostname;
+      sslSecure = url.protocol === 'https:';
+      scrapedDetails['Scanned domain'] = resolvedDomain;
+      scrapedDetails['Path'] = url.pathname;
     } catch {
-      scrapedDetails['Format Error'] = 'Malformed URL structure';
+      scrapedDetails['Format error'] = 'Malformed URL';
     }
-  } else {
-    scrapedDetails['Payload Type'] = 'Alphanumeric Serial / GS1 Barcode';
-    scrapedDetails['Payload Length'] = `${clean.length} characters`;
   }
 
+  // Brand words in an arbitrary URL are not a catalog match.
+  if (!isUrl) {
   // =========================================================================
   // AMUL DARK CHOCOLATE 55% COCOA
   // =========================================================================
@@ -472,7 +439,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Velvety smooth spread consistency at room temperature',
         'Italian GS1 manufacturer prefix 800'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['Counterfeit batch with diluted cocoa detected.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['Verified Italian GS1 registration', 'Official Ferrero authenticity signatures'],
       scrapedDetails: {
         'Packaging': 'Glass Jar with Plastic Cap',
@@ -548,7 +515,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Laser-etched batch stamp on bottle shoulder',
         'Official Kraft Heinz UK distribution seal'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['Counterfeit diluted sauce detected.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['Verified Kraft Heinz manufacturer record', 'Valid GS1 UK prefix 500'],
       scrapedDetails: {
         'Container': 'Top-Down Squeeze Bottle',
@@ -623,7 +590,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Hermetically sealed pull-tab with embossed Coca-Cola logo silhouette',
         'Official retail distribution GTIN registered with GS1 UK'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['Counterfeit / expired batch re-labeling risk.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['Verified GS1 EAN-13 registered product code', 'Global brand trademarks validated'],
       scrapedDetails: {
         'Barcode Format': 'EAN-13 Linear Barcode',
@@ -702,7 +669,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Uniform golden noodle cake consistency',
         'Valid FSSAI Central License declaration'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['Unregistered parallel batch detected.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['Verified Nestlé manufacturing standard', 'Valid GS1 India registration'],
       scrapedDetails: {
         'Net Weight': '70 g',
@@ -774,7 +741,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Characteristic pale golden hue and signature savory taste',
         'Certified FSSAI dairy license'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['Counterfeit packaging with hydrogenated vegetable fat detected.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['Verified GCMMF cooperative registry', 'Valid Indian dairy certification'],
       scrapedDetails: {
         'Fat Content': '80% Pure Milk Fat',
@@ -849,7 +816,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Distinctive uniform wafer-thin potato cut',
         'Valid GS1 India barcode prefix'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['Stale unsealed parallel batch detected.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['PepsiCo licensed facility record', 'Valid GS1 India product registry'],
       scrapedDetails: {
         'Net Contents': '50 g',
@@ -906,7 +873,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Laser-crimped batch and expiry stamp on tube end',
         'Official Colgate-Palmolive trademark'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['Counterfeit toothpaste containing unsafe abrasives detected.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['Verified Colgate-Palmolive industrial registration', 'Valid Indian oral care drug license'],
       scrapedDetails: {
         'Net Weight': '120 g',
@@ -962,7 +929,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Clean signature fresh scent with fast absorption',
         'German GS1 manufacturer prefix 400'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['Counterfeit skincare cream with mineral oil fillers.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['Verified Beiersdorf AG European registration', 'Dermatologically tested certification'],
       scrapedDetails: {
         'Volume': '100 ml',
@@ -1017,7 +984,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Batch number and Mfg date laser-printed on back label',
         'Valid Drug Controller manufacturing license'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['Dangerous counterfeit diluted solvent imitation detected.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['Verified Reckitt Benckiser pharma registration', 'Valid Indian FDA drug approval'],
       scrapedDetails: {
         'Active Concentration': 'Chloroxylenol 4.8% w/v',
@@ -1069,7 +1036,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Uniform smooth white caplet shape with score line',
         'Approved by State Drug Licensing Authority'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['CRITICAL: Counterfeit medicine alert. Do not ingest unverified pharmaceutical products.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['Verified Haleon pharmaceutical compliance', 'Valid Drug License No. PB-02-1249'],
       scrapedDetails: {
         'Active Drug': 'Paracetamol IP 650mg',
@@ -1120,7 +1087,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Serial number micro-printed inside the USB-C receptacle slot',
         'Official Apple packaging with easy-pull green security tear tab'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['High counterfeit risk: knock-off adapter lacking safety fuses.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['Verified Apple serial structure', 'Valid GS1 US UPC barcode'],
       scrapedDetails: {
         'Power Rating': '20 Watts USB-PD',
@@ -1164,7 +1131,7 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
         'Authentic Nike RFID chip embedded within size label',
         'UPC barcode font and spacing matches Nike Beaverton distribution standards'
       ],
-      counterfeitRiskSignals: lower.includes('fake') ? ['Counterfeit replica detected with synthetic leather upper.'] : [],
+      counterfeitRiskSignals: [],
       legitimacyFactors: ['Official Nike distribution serial', 'Valid Beaverton Oregon production log'],
       scrapedDetails: {
         'Silhouette': 'Air Jordan 1 Retro High',
@@ -1175,180 +1142,28 @@ export function getHeuristicWebIntelligence(payload: string): Partial<WebScrapeI
     };
   }
 
-  // =========================================================================
-  // 14. KNOWN FAKE BARCODE REPLICA
-  // =========================================================================
-  if (clean === '000000FAKE99' || lower.includes('fake') || lower.includes('replica')) {
-    return {
-      isUrl,
-      resolvedDomain,
-      sslSecure: false,
-      domainTrustScore: 10,
-      categoryGroup: 'general',
-      imageUrl: 'https://images.unsplash.com/photo-1594322436404-5a0526db4d13?w=600&auto=format&fit=crop&q=80',
-      productMatchTitle: 'Counterfeit Unregistered Commercial Goods (Replica 99)',
-      brand: 'Unverified Counterfeit Manufacturer',
-      category: 'Counterfeit / Parallel Import',
-      estimatedPrice: '$12.00 USD (Street Price)',
-      manufacturer: 'Unregistered Shadow Production Plant',
-      officialDomain: '',
-      barcodeFormat: 'EAN-12 (Invalid Checksum)',
-      barcodeType: '1D_LINEAR',
-      gtin: '000000FAKE99',
-      countryOfOrigin: 'Unregistered / Blacklisted Origin',
-      keySpecs: [
-        'CRITICAL ALERT: Barcode fails GS1 modulo-10 mathematical verification',
-        'Zero cryptographic registration found on legitimate manufacturer databases',
-        'Packaging demonstrates sub-standard printing resolution and missing batch codes',
-        'Substandard materials flagged for consumer safety hazards'
-      ],
-      authenticityIndicators: [
-        'WARNING: Missing official holographic security seal',
-        'Faded low-resolution barcode pitch prone to scanner failure',
-        'No valid manufacturer customer care or FSSAI/FDA license registered',
-        'Duplicate serial number detected across multiple unauthorized batches'
-      ],
-      counterfeitRiskSignals: [
-        'Flagged on global anti-counterfeit blacklist',
-        'Zero verifiable provenance on blockchain ledger',
-        'Product packaging lacks certified safety testing marks'
-      ],
-      legitimacyFactors: [],
-      scrapedDetails: {
-        'Security Status': 'HIGH COUNTERFEIT RISK',
-        'GS1 Validation': 'FAILED',
-        'Origin': 'Blacklisted Warehouse'
-      },
-      summary: 'Counterfeit product identified. Failed official checksum and zero verifiable on-chain registration.'
-    };
   }
 
-  // =========================================================================
-  // 15. DYNAMIC GENERAL BARCODE OR QR (ANY OTHER COMMERCIAL PRODUCT)
-  // =========================================================================
-  const isDigitsOnly = /^\d{6,18}$/.test(clean);
-  let country = 'International GS1 Registry';
-  let detectedCategoryGroup: 'food' | 'beverage' | 'personal_care' | 'pharma' | 'electronics' | 'apparel' | 'general' = 'general';
-
-  if (isDigitsOnly) {
-    const prefix2 = clean.substring(0, 2);
-    const prefix3 = clean.substring(0, 3);
-    const p2Num = parseInt(prefix2, 10);
-    const p3Num = parseInt(prefix3, 10);
-
-    if (p2Num >= 0 && p2Num <= 13) country = 'United States & Canada (GS1 US)';
-    else if (p3Num >= 300 && p3Num <= 379) country = 'France (GS1 France)';
-    else if (p3Num >= 400 && p3Num <= 440) country = 'Germany (GS1 Germany)';
-    else if (p3Num >= 450 && p3Num <= 459 || p3Num >= 490 && p3Num <= 499) country = 'Japan (GS1 Japan / JAN)';
-    else if (p3Num >= 500 && p3Num <= 509) country = 'United Kingdom (GS1 UK)';
-    else if (p3Num >= 540 && p3Num <= 549) country = 'Belgium & Luxembourg';
-    else if (p3Num >= 690 && p3Num <= 699) country = 'China (GS1 China)';
-    else if (p3Num >= 760 && p3Num <= 769) country = 'Switzerland (GS1 Switzerland)';
-    else if (p3Num >= 800 && p3Num <= 839) country = 'Italy (GS1 Italy)';
-    else if (p3Num >= 840 && p3Num <= 849) country = 'Spain (GS1 Spain)';
-    else if (p3Num >= 870 && p3Num <= 879) country = 'Netherlands (GS1 Netherlands)';
-    else if (p3Num >= 880 && p3Num <= 880) country = 'South Korea (GS1 Korea)';
-    else if (p3Num >= 890 && p3Num <= 890) country = 'India (GS1 India)';
-    else if (p3Num >= 930 && p3Num <= 939) country = 'Australia (GS1 Australia)';
-  }
-
-  // Detect category keywords
-  if (lower.includes('food') || lower.includes('snack') || lower.includes('biscuit') || lower.includes('cookie') || lower.includes('chocolate') || lower.includes('rice') || lower.includes('wheat') || lower.includes('cereal') || lower.includes('oil') || lower.includes('sauce') || lower.includes('pasta') || lower.includes('spice') || lower.includes('grocery')) {
-    detectedCategoryGroup = 'food';
-  } else if (lower.includes('drink') || lower.includes('beverage') || lower.includes('juice') || lower.includes('water') || lower.includes('tea') || lower.includes('coffee') || lower.includes('cola') || lower.includes('soda')) {
-    detectedCategoryGroup = 'beverage';
-  } else if (lower.includes('shampoo') || lower.includes('soap') || lower.includes('cream') || lower.includes('lotion') || lower.includes('cosmetic') || lower.includes('perfume') || lower.includes('serum') || lower.includes('care') || lower.includes('hygiene')) {
-    detectedCategoryGroup = 'personal_care';
-  } else if (lower.includes('tablet') || lower.includes('capsule') || lower.includes('syrup') || lower.includes('pharma') || lower.includes('vitamin') || lower.includes('health') || lower.includes('medical') || lower.includes('medicine')) {
-    detectedCategoryGroup = 'pharma';
-  } else if (lower.includes('phone') || lower.includes('charger') || lower.includes('cable') || lower.includes('headphone') || lower.includes('audio') || lower.includes('laptop') || lower.includes('battery') || lower.includes('gadget') || lower.includes('electronic')) {
-    detectedCategoryGroup = 'electronics';
-  } else if (lower.includes('shirt') || lower.includes('shoe') || lower.includes('sneaker') || lower.includes('jean') || lower.includes('pant') || lower.includes('jacket') || lower.includes('dress') || lower.includes('apparel') || lower.includes('wear')) {
-    detectedCategoryGroup = 'apparel';
-  }
-
-  const formatName = clean.length === 12 ? 'UPC-A' : clean.length === 13 ? 'EAN-13' : clean.length === 8 ? 'EAN-8' : (isUrl ? 'QR-Code' : 'GTIN Barcode');
-
-  // Generic Food Details fallback if it's a food product
-  let dynamicFoodDetails = undefined;
-  if (detectedCategoryGroup === 'food' || detectedCategoryGroup === 'beverage') {
-    dynamicFoodDetails = {
-      foodPhotoUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80',
-      netQuantity: 'Standard Retail Pack',
-      dietaryType: 'vegetarian' as const,
-      nutrition: {
-        servingSize: '1 serving (100g)',
-        calories: '240 kcal',
-        protein: '4.8g',
-        totalFat: '8.2g',
-        carbohydrates: '36.5g',
-        sugars: '6.2g',
-        sodium: '180mg'
-      },
-      ingredientsList: [
-        'Wholesome Grains / Agricultural Produce',
-        'Edible Vegetable Oil',
-        'Purified Water',
-        'Iodised Salt',
-        'Natural Spices & Flavorings'
-      ],
-      allergens: [
-        'Check physical carton for specific allergy declarations',
-        'Processed in a facility handling Wheat, Milk and Nuts'
-      ],
-      shelfLife: '12 Months from Packaging',
-      bestBefore: 'See packaging stamp for exact batch expiry',
-      storageInstructions: 'Store in a cool, hygienic and dry place away from heat and direct sunlight.',
-      foodSafetyLicense: 'Official GS1 Commercial Food Safety Registration'
-    };
-  }
-
+  // Unknown codes have no catalog facts until a source supplies them.
   return {
     isUrl,
     resolvedDomain,
     sslSecure,
-    domainTrustScore: 70,
-    categoryGroup: detectedCategoryGroup,
-    imageUrl: detectedCategoryGroup === 'food' || detectedCategoryGroup === 'beverage'
-      ? 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'
-      : (detectedCategoryGroup === 'personal_care'
-        ? 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80'
-        : (detectedCategoryGroup === 'electronics'
-          ? 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&auto=format&fit=crop&q=80'
-          : 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80')),
-    productMatchTitle: isUrl ? `Web Product (${resolvedDomain || 'Scanned Link'})` : `Commercial Market Product (${clean.substring(0, 24)})`,
-    brand: resolvedDomain ? resolvedDomain.split('.')[0].toUpperCase() : 'Registered Brand',
-    category: detectedCategoryGroup === 'food' ? 'Packaged Food & Groceries' : (detectedCategoryGroup === 'beverage' ? 'Beverages & Drinks' : 'Commercial Consumer Goods'),
-    estimatedPrice: '$24.50 USD',
-    manufacturer: `Certified Production Facility (${country})`,
-    officialDomain: resolvedDomain || 'gs1.org',
-    barcodeFormat: formatName,
+    domainTrustScore: 50,
+    categoryGroup: 'general',
+    productMatchTitle: isUrl ? `Product link (${resolvedDomain || 'unknown domain'})` : `Code: ${clean}`,
+    brand: 'Unknown brand',
+    manufacturer: 'Not available',
+    estimatedPrice: 'Not available',
+    countryOfOrigin: 'Not available',
     barcodeType: isUrl ? 'URL' : '1D_LINEAR',
     gtin: clean,
-    countryOfOrigin: country,
-    foodDetails: dynamicFoodDetails,
-    keySpecs: [
-      `Optical Code Standard: ${formatName}`,
-      `Origin Registry: ${country}`,
-      `Payload: ${clean}`,
-      'Commercial retail barcode pitch'
-    ],
-    authenticityIndicators: [
-      'Standard GS1 checksum mathematical alignment',
-      'High-contrast packaging barcode print verified',
-      'Commercial point-of-sale scanner readability confirmed'
-    ],
+    keySpecs: [],
+    authenticityIndicators: [],
     counterfeitRiskSignals: [],
-    legitimacyFactors: [
-      `Valid optical ${formatName} density`,
-      `Country of origin prefix identified (${country})`
-    ],
-    scrapedDetails: {
-      'Barcode Format': formatName,
-      'Serial / GTIN': clean,
-      'Regional Origin': country
-    },
-    summary: `Commercial product scanned via ${formatName}. Identified with origin region ${country}.`
+    legitimacyFactors: [],
+    scrapedDetails,
+    summary: 'No catalog details found for this code. Check the packaging or contact the brand.'
   };
 }
 
@@ -1358,22 +1173,17 @@ export function analyzeScannedPayload(
   customIntel?: Partial<WebScrapeIntelligence>
 ): ScanVerificationResult {
   const cleanPayload = payload.trim();
-  const lower = cleanPayload.toLowerCase();
 
-  // 1. Direct Blockchain Ledger Lookup
-  let matchedRecord: BlockchainProductRecord | undefined = blockchainLedger[cleanPayload];
-
-  if (!matchedRecord) {
-    // Try matching without leading zeros or case-insensitive
-    const matchKey = Object.keys(blockchainLedger).find(k =>
-      k.toLowerCase() === lower ||
-      cleanPayload.replace(/^0+/, '') === k.replace(/^0+/, '') ||
-      lower.includes(k.toLowerCase()) ||
-      k.toLowerCase().includes(lower)
+  // Require a complete identifier; UPC-A and zero-padded EAN/GTIN forms may be equivalent.
+  let matchedRecord = Object.hasOwn(blockchainLedger, cleanPayload)
+    ? blockchainLedger[cleanPayload]
+    : undefined;
+  if (!matchedRecord && /^\d{12,14}$/.test(cleanPayload)) {
+    const canonicalGtin = cleanPayload.padStart(14, '0');
+    const matchKey = Object.keys(blockchainLedger).find(key =>
+      /^\d{12,14}$/.test(key) && key.padStart(14, '0') === canonicalGtin
     );
-    if (matchKey) {
-      matchedRecord = blockchainLedger[matchKey];
-    }
+    if (matchKey) matchedRecord = blockchainLedger[matchKey];
   }
 
   // 2. Web Intelligence / Knowledge Base Scraper
@@ -1384,16 +1194,23 @@ export function analyzeScannedPayload(
     barcodeFormat: baseIntel.barcodeFormat,
     barcodeType: baseIntel.barcodeType,
     gtin: baseIntel.gtin || cleanPayload,
-    countryOfOrigin: baseIntel.countryOfOrigin || 'International',
+    countryOfOrigin: baseIntel.countryOfOrigin || 'Not available',
     resolvedDomain: baseIntel.resolvedDomain,
     isDomainVerified: baseIntel.isDomainVerified,
     sslSecure: baseIntel.sslSecure,
-    domainTrustScore: baseIntel.domainTrustScore || 50,
+    domainTrustScore: baseIntel.domainTrustScore ?? 50,
     productMatchTitle: baseIntel.productMatchTitle || (matchedRecord ? matchedRecord.name : `Product (${cleanPayload.substring(0, 18)})`),
-    brand: baseIntel.brand || (matchedRecord ? matchedRecord.brand : 'Commercial Manufacturer'),
+    exactVariant: baseIntel.exactVariant,
+    parentCompany: baseIntel.parentCompany,
+    netWeight: baseIntel.netWeight,
+    packagingType: baseIntel.packagingType,
+    certifications: baseIntel.certifications,
+    physicalAuthenticityChecks: baseIntel.physicalAuthenticityChecks,
+    counterfeitRedFlags: baseIntel.counterfeitRedFlags,
+    brand: baseIntel.brand || (matchedRecord ? matchedRecord.brand : 'Unknown brand'),
     category: baseIntel.category || (matchedRecord ? matchedRecord.category : 'Consumer Goods'),
-    estimatedPrice: baseIntel.estimatedPrice || (matchedRecord ? `$${matchedRecord.priceUsd} USD` : '$45.00 USD'),
-    manufacturer: baseIntel.manufacturer || (matchedRecord ? matchedRecord.originLocation : 'Certified Production Plant'),
+    estimatedPrice: baseIntel.estimatedPrice || (matchedRecord ? `$${matchedRecord.priceUsd} USD` : 'Not available'),
+    manufacturer: baseIntel.manufacturer || (matchedRecord ? matchedRecord.originLocation : 'Not available'),
     officialDomain: baseIntel.officialDomain,
     imageUrl: baseIntel.imageUrl,
     categoryGroup: baseIntel.categoryGroup || (matchedRecord?.category.toLowerCase().includes('food') || matchedRecord?.category.toLowerCase().includes('beverage') ? 'food' : 'general'),
@@ -1401,17 +1218,10 @@ export function analyzeScannedPayload(
     personalCareDetails: baseIntel.personalCareDetails,
     pharmaDetails: baseIntel.pharmaDetails,
     electronicsDetails: baseIntel.electronicsDetails,
-    keySpecs: baseIntel.keySpecs || [
-      'Commercial retail barcode verified',
-      'Tamper-evident packaging standards',
-      'Point-of-sale optical readability confirmed'
-    ],
-    authenticityIndicators: baseIntel.authenticityIndicators || [
-      'Official brand packaging integrity',
-      'Laser-printed batch stamp match'
-    ],
+    keySpecs: baseIntel.keySpecs || [],
+    authenticityIndicators: baseIntel.authenticityIndicators || [],
     counterfeitRiskSignals: baseIntel.counterfeitRiskSignals || [],
-    summary: baseIntel.summary || 'Product metadata parsed.',
+    summary: 'Reference information only. Catalog details do not verify this individual item.',
     isAiEnriched: baseIntel.isAiEnriched,
     knownCounterfeitSignals: baseIntel.knownCounterfeitSignals || [],
     legitimacyFactors: baseIntel.legitimacyFactors || [],
@@ -1441,33 +1251,32 @@ export function analyzeScannedPayload(
       trustScore = 100;
       verdict = 'GENUINE';
       reasons.push({
-        title: 'Authentic & Verified Genuine Product',
+        title: 'Product code found',
         severity: 'info',
-        english: `100% GENUINE: Registered with verified manufacturer credentials. Batch ${matchedRecord.batchNumber} has verified production records.`
+        english: `This code matches batch ${matchedRecord.batchNumber} in the app registry.`
       });
       reasons.push({
-        title: 'Certified Origin & Distribution',
+        title: 'Recorded origin',
         severity: 'info',
-        english: `Produced at ${matchedRecord.originLocation}. Packaging and barcode match authorized retail records.`
+        english: `The registered origin is ${matchedRecord.originLocation}. Check the physical packaging separately.`
       });
     }
   } else {
     // Not found in verified database
-    const isSuspicious = lower.includes('fake') || lower.includes('replica') || (webIntelligence.domainTrustScore < 40);
-    trustScore = isSuspicious ? 12 : 25;
+    trustScore = 0;
     verdict = 'LIKELY_FAKE';
 
     reasons.push({
-      title: 'Unverified / Counterfeit Warning',
+      title: 'Code not found',
       severity: 'critical',
-      english: `Warning: This product barcode ('${cleanPayload}') was not found in the verified authentic manufacturer registry. It may be an unauthorized parallel import or counterfeit replica.`
+      english: `This code ('${cleanPayload}') is not in the app registry. That alone does not establish whether the item is genuine or counterfeit.`
     });
 
-    if (webIntelligence.productMatchTitle) {
+    if (baseIntel.productMatchTitle && baseIntel.brand && baseIntel.brand !== 'Unknown brand') {
       reasons.push({
         title: 'Catalog Match Available',
         severity: 'warning',
-        english: `Catalog reference match for "${webIntelligence.productMatchTitle}" by ${webIntelligence.brand}. Genuine retail units have registered security seals.`
+        english: `Reference details: "${webIntelligence.productMatchTitle}". Catalog information does not verify this individual item.`
       });
     }
   }
@@ -1485,20 +1294,20 @@ export function analyzeScannedPayload(
       blockchainProof: {
         status: matchedRecord ? (matchedRecord.status === 'RECALLED' ? 'RECALLED' : 'VERIFIED') : 'NOT_FOUND',
         score: matchedRecord ? (matchedRecord.status === 'RECALLED' ? 0.1 : 1.0) : 0.0,
-        label: matchedRecord ? 'Official Registry Verified' : 'Unregistered on Database',
+        label: matchedRecord ? 'App registry match' : 'Code not registered',
         detail: matchedRecord ? `Verified Batch ${matchedRecord.batchNumber}` : 'Zero official records found'
       },
       aiWebIntelligence: {
         status: webIntelligence.domainTrustScore >= 80 ? 'SAFE' : (webIntelligence.domainTrustScore >= 40 ? 'UNKNOWN' : 'SUSPICIOUS'),
         score: webIntelligence.domainTrustScore / 100,
         label: webIntelligence.isUrl ? `${webIntelligence.resolvedDomain}` : `${webIntelligence.brand}`,
-        detail: 'Catalog metadata verified'
+        detail: 'Reference information only'
       },
       qrFormatIntegrity: {
         status: cleanPayload.length >= 4 ? 'VALID' : 'ANOMALOUS',
         score: cleanPayload.length >= 4 ? 0.95 : 0.2,
         label: `${cleanPayload.length} Characters`,
-        detail: 'Standard barcode density verified'
+        detail: 'Payload length checked; physical label not inspected'
       },
       brandSecuritySeal: {
         status: matchedRecord ? 'ACTIVE' : 'UNREGISTERED',
@@ -1518,9 +1327,9 @@ export async function analyzeScannedPayloadAsync(
   options?: { imageBase64?: string; imageMimeType?: string }
 ): Promise<ScanVerificationResult> {
   const cleanPayload = payload.trim();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 7000);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 7000);
     const res = await fetch('/api/scrape-product', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1531,8 +1340,6 @@ export async function analyzeScannedPayloadAsync(
       }),
       signal: controller.signal,
     });
-    clearTimeout(timer);
-
     if (res.ok) {
       const data = await res.json();
       if (data && data.intelligence) {
@@ -1540,7 +1347,9 @@ export async function analyzeScannedPayloadAsync(
       }
     }
   } catch (err) {
-    console.warn('Call to /api/scrape-product completed or fallback:', err);
+    console.warn('Product lookup unavailable; using local catalog:', err);
+  } finally {
+    clearTimeout(timer);
   }
   return analyzeScannedPayload(cleanPayload, blockchainLedger);
 }

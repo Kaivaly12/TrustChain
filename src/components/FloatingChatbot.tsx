@@ -20,15 +20,7 @@ export const FloatingChatbot: React.FC<FloatingChatbotProps> = ({
     {
       id: 'init-1',
       sender: 'assistant',
-      text: `Hello! I'm your **Product Assistant**.
-
-I can help you:
-- **Food & Nutrition**: Explain calories, ingredients, and allergen warnings
-- **Barcodes**: How to scan or verify codes on product packaging
-- **Authenticity**: How to tell if a product is genuine or suspicious
-- **Registration**: How brands register items in the database
-
-What would you like to check today?`,
+      text: `Need a hand? Ask me how to scan a code, read product details, or register an item. I’m an automated assistant and may make mistakes.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -80,7 +72,6 @@ What would you like to check today?`,
         id: 'bot-' + Date.now(),
         sender: 'assistant',
         text: reply,
-        sources: ['Product Registry', 'Food Safety Standards'],
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages((prev) => [...prev, assistantMsg]);
@@ -230,7 +221,7 @@ What would you like to check today?`,
                 {isLoading && (
                   <div className="flex items-center gap-2 text-xs text-[#006948] font-mono italic p-2 bg-white rounded-xl border border-[#bccac0]/30 w-fit shadow-xs">
                     <span className="material-symbols-outlined text-[15px] animate-spin">sync</span>
-                    <span>Analyzing product registry with Gemini 3.8...</span>
+                    <span>Looking into your question...</span>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
