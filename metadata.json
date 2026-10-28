@@ -1,0 +1,9 @@
+{
+  "name": "Trust Chain",
+  "description": "Instant product verification and safety scanner. Scan barcodes with your camera to check authentic brand details, ingredients, and nutrition facts.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
