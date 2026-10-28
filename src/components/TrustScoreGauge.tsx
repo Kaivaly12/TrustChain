@@ -63,9 +63,9 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
   // Determine dynamic level label based on real-time display value
   const getIntegrityLabel = (val: number) => {
     if (isRecalled) return 'Safety Recall Notice';
-    if (!isReal) return 'Unverified / High Risk';
-    if (val >= 95) return '100% Genuine & Verified';
-    if (val >= 75) return 'Verified Brand Match';
+    if (!isReal) return 'No registry match';
+    if (val >= 95) return 'Registry match';
+    if (val >= 75) return 'Registry match';
     return 'Checking Product Catalog...';
   };
 
@@ -80,7 +80,7 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
       {/* Header and Animated Numeric Counter with Dynamic Color */}
       <div className="flex items-center justify-between gap-3 mb-1.5">
         <span className="text-[11px] uppercase tracking-wider text-[#6d7a72] font-semibold">
-          Authenticity Score
+          Registry Score
         </span>
 
         <motion.span
@@ -107,16 +107,16 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
       {/* Gauge Calibration labels */}
       <div className="flex items-center justify-between text-[10px] text-[#6d7a72] mt-1.5 pt-0.5 font-medium">
         <span className={displayValue <= 20 ? 'text-[#ba1a1a] font-bold' : ''}>
-          Unverified
+          No match
         </span>
         <span className={displayValue > 40 && displayValue < 70 ? 'text-amber-700 font-bold' : ''}>
-          Likely
+          Registry score
         </span>
         <motion.span
           style={{ color: displayValue >= 90 ? textColor : undefined }}
           className={displayValue >= 90 ? 'font-bold' : ''}
         >
-          100% Genuine
+          Match found
         </motion.span>
       </div>
 
