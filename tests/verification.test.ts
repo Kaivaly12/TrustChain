@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { analyzeScannedPayload, getHeuristicWebIntelligence } from '../src/services/webScraperIntelligence.ts';
+import { analyzeScannedPayload, analyzeScannedPayloadAsync, getHeuristicWebIntelligence } from '../src/services/webScraperIntelligence.ts';
 import { INITIAL_LEDGER } from '../src/services/blockchainLedger.ts';
 
 const code = 'NIKE-AIR-JORDAN-1042';
@@ -86,4 +86,31 @@ test('a UPC registry entry can be scanned in its zero-padded EAN form', () => {
   const ledger = { '194252192566': { ...INITIAL_LEDGER[code], tokenId: '194252192566' } };
   assert.equal(analyzeScannedPayload('0194252192566', ledger).isRegisteredOnBlockchain, true);
   assert.equal(analyzeScannedPayload('19425219256', ledger).isRegisteredOnBlockchain, false);
+});
+
+// These cases cover both local catalog data and the response shape from server.ts.
+test('catalog reasons exclude unknown local fallback codes', () => {
+  const result = analyzeScannedPayload('UNKNOWN-REPAIR-123', {});
+  assert.equal(result.webIntelligence.brand, 'Unknown brand');
+  assert.deepEqual(result.reasons.map(reason => reason.title), ['Code not found']);
+});
+
+test('catalog reasons exclude unknown server fallback codes', async context => {
+  context.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify({
+    intelligence: { productMatchTitle: 'Code: UNKNOWN-REPAIR-123', brand: 'Unknown brand' }
+  }), { headers: { 'Content-Type': 'application/json' } }));
+  const result = await analyzeScannedPayloadAsync('UNKNOWN-REPAIR-123', {});
+  assert.deepEqual(result.reasons.map(reason => reason.title), ['Code not found']);
+});
+
+test('catalog reasons require an identified brand and retain real catalog references', () => {
+  for (const brand of [undefined, '', 'Unknown brand']) {
+    const result = analyzeScannedPayload('UNKNOWN-REPAIR-123', {}, { productMatchTitle: 'Code: UNKNOWN-REPAIR-123', brand });
+    assert.equal(result.reasons.some(reason => reason.title === 'Catalog Match Available'), false);
+  }
+  const local = analyzeScannedPayload('8901262010058', {});
+  assert.equal(local.webIntelligence.productMatchTitle, 'Amul Pasteurised Pure Dairy Salted Butter (100g Carton)');
+  assert.equal(local.reasons.some(reason => reason.title === 'Catalog Match Available'), true);
+  const server = analyzeScannedPayload('KNOWN-CATALOG-123', {}, { productMatchTitle: 'Example product', brand: 'Example brand' });
+  assert.equal(server.reasons.some(reason => reason.title === 'Catalog Match Available'), true);
 });

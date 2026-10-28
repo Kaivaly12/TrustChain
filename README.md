@@ -10,7 +10,7 @@ Scan a barcode or QR code, upload a barcode photo, or enter a product code. The 
 - A registered code scores 100; a recalled record scores 10; an unregistered code scores 0. These scores describe registry matching, not the probability that a physical item is genuine.
 - A copied barcode can match a registered record. No matching record does not prove an item is counterfeit.
 - The app does not query GS1 or independently inspect packaging seals. Reference nutrition and allergen details may differ from the pack in your hand.
-- The ledger and account flows run locally. Reports are held in server memory and disappear when the server restarts. This is not a production authentication or blockchain deployment.
+- The ledger and account flows run locally. Reports are held in server memory and disappear when the server restarts. New product records live only in the current tab’s React state: reloading restores the sample ledger, and other tabs cannot see newly registered products. This is not a production authentication or blockchain deployment.
 
 ## Run locally
 

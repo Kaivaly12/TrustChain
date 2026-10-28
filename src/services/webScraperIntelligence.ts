@@ -1272,7 +1272,7 @@ export function analyzeScannedPayload(
       english: `This code ('${cleanPayload}') is not in the app registry. That alone does not establish whether the item is genuine or counterfeit.`
     });
 
-    if (webIntelligence.productMatchTitle) {
+    if (baseIntel.productMatchTitle && baseIntel.brand && baseIntel.brand !== 'Unknown brand') {
       reasons.push({
         title: 'Catalog Match Available',
         severity: 'warning',

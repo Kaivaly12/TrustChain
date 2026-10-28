@@ -180,7 +180,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] uppercase font-mono text-[#6d7a72] block">Trust</span>
+                  <span className="text-[10px] uppercase font-mono text-[#6d7a72] block">Registry score</span>
                   <span className="text-2xl font-mono font-extrabold text-[#006948]">100%</span>
                 </div>
               </div>
@@ -240,7 +240,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] uppercase font-mono text-[#6d7a72] block">Trust</span>
+                  <span className="text-[10px] uppercase font-mono text-[#6d7a72] block">Registry score</span>
                   <span className="text-2xl font-mono font-extrabold text-[#ba1a1a]">0%</span>
                 </div>
               </div>

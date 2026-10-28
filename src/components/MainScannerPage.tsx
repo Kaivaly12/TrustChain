@@ -476,7 +476,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                           alt={webIntel.productMatchTitle || 'Product'}
                           className="w-full h-full object-cover"
                         />
-                        {isFoodOrBeverage && (
+                        {foodDetails?.dietaryType === 'vegetarian' && (
                           <div className="absolute top-2 left-2 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded-md border border-neutral-200 shadow-xs flex items-center gap-1.5">
                             {/* Indian standard Vegetarian Green Dot mark */}
                             <div className="w-3.5 h-3.5 border-2 border-[#006948] flex items-center justify-center p-0.5">
@@ -541,7 +541,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                         <div className="p-2.5 rounded-xl bg-white border border-[#bccac0]/30">
                           <span className="text-[10px] text-[#6d7a72] block">Net Quantity</span>
                           <span className="font-bold text-[#1a1c1a] text-xs block mt-0.5 truncate">
-                            {foodDetails?.netQuantity || 'Standard Pack'}
+                            {foodDetails?.netQuantity || 'Not available'}
                           </span>
                         </div>
                       </div>
@@ -558,7 +558,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                         <span>Nutrition Facts & Ingredients</span>
                       </h4>
                       <span className="text-xs text-[#6d7a72]">
-                        Serving Size: <strong className="text-[#1a1c1a]">{foodDetails?.nutrition?.servingSize || '100g'}</strong> • Energy: <strong className="text-[#006948]">{foodDetails?.nutrition?.calories || '240 kcal'}</strong>
+                        Serving Size: <strong className="text-[#1a1c1a]">{foodDetails?.nutrition?.servingSize || 'Not available'}</strong> • Energy: <strong className="text-[#006948]">{foodDetails?.nutrition?.calories ?? 'Not available'}</strong>
                       </span>
                     </div>
 
@@ -567,28 +567,28 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                       <div className="p-3 rounded-xl bg-[#faf9f6] border border-[#bccac0]/30 text-center">
                         <span className="text-[10px] text-[#6d7a72] block">Protein</span>
                         <span className="font-bold text-[#1a1c1a] text-sm block mt-0.5">
-                          {foodDetails?.nutrition?.protein || '4.5g'}
+                          {foodDetails?.nutrition?.protein || 'Not available'}
                         </span>
                       </div>
 
                       <div className="p-3 rounded-xl bg-[#faf9f6] border border-[#bccac0]/30 text-center">
                         <span className="text-[10px] text-[#6d7a72] block">Total Fat</span>
                         <span className="font-bold text-[#1a1c1a] text-sm block mt-0.5">
-                          {foodDetails?.nutrition?.totalFat || '7.0g'}
+                          {foodDetails?.nutrition?.totalFat || 'Not available'}
                         </span>
                       </div>
 
                       <div className="p-3 rounded-xl bg-[#faf9f6] border border-[#bccac0]/30 text-center">
                         <span className="text-[10px] text-[#6d7a72] block">Carbohydrates</span>
                         <span className="font-bold text-[#1a1c1a] text-sm block mt-0.5">
-                          {foodDetails?.nutrition?.carbohydrates || '25.0g'}
+                          {foodDetails?.nutrition?.carbohydrates || 'Not available'}
                         </span>
                       </div>
 
                       <div className="p-3 rounded-xl bg-[#faf9f6] border border-[#bccac0]/30 text-center">
                         <span className="text-[10px] text-[#6d7a72] block">Sugars</span>
                         <span className="font-bold text-[#006948] text-sm block mt-0.5">
-                          {foodDetails?.nutrition?.sugars || '14.0g'}
+                          {foodDetails?.nutrition?.sugars || 'Not available'}
                         </span>
                       </div>
                     </div>
@@ -614,10 +614,10 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                           <span>Allergens & Expiry:</span>
                         </span>
                         <p className="text-xs text-[#93000a]">
-                          {foodDetails?.allergens?.join(', ') || 'No common allergen alerts detected. Verify on pack.'}
+                          {foodDetails?.allergens?.length ? foodDetails.allergens.join(', ') : 'Allergen information not available. Check the package.'}
                         </p>
                         <p className="text-xs text-[#3d4a42] pt-1">
-                          Best Before: <strong>{foodDetails?.bestBefore || record?.expiryDate || '10 May 2027'}</strong>
+                          Best Before: <strong>{foodDetails?.bestBefore || record?.expiryDate || 'Not available'}</strong>
                         </p>
                         {foodDetails?.foodSafetyLicense && (
                           <span className="text-[11px] font-mono text-[#006948] block pt-0.5">
