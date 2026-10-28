@@ -1,4 +1,4 @@
-# TrustTag: Anti-Counterfeit Verification Platform
+# TrustChain: Anti-Counterfeit Verification Platform
 > **Aadhaar-Style Cryptographic & AI Provenance Verification for Physical Products**  
 > *Target Market: India (Pharmaceuticals, Footwear/Fashion, Consumer Electronics, and P2P Resale)*
 
