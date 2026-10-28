@@ -617,7 +617,7 @@ export const MainScannerPage: React.FC<MainScannerPageProps> = ({
                           {foodDetails?.allergens?.length ? foodDetails.allergens.join(', ') : 'Allergen information not available. Check the package.'}
                         </p>
                         <p className="text-xs text-[#3d4a42] pt-1">
-                          Best Before: <strong>{foodDetails?.bestBefore || record?.expiryDate || 'Not available'}</strong>
+                          Best Before: <strong>{record?.expiryDate || 'Not available'}</strong>
                         </p>
                         {foodDetails?.foodSafetyLicense && (
                           <span className="text-[11px] font-mono text-[#006948] block pt-0.5">
